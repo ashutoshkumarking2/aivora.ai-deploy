@@ -113,8 +113,34 @@ app.get('/api/auth/github/callback', async (req, res) => {
   }
 });
 
+
+// Dynamic sitemap.xml Route
+app.get('/sitemap.xml', (req, res) => {
+  res.header('Content-Type', 'application/xml');
+  res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://aivora-ai-deploy.onrender.com/</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`);
+});
+
+// Dynamic robots.txt Route
+app.get('/robots.txt', (req, res) => {
+  res.header('Content-Type', 'text/plain');
+  res.send(`User-agent: *
+Allow: /
+
+Sitemap: https://aivora-ai-deploy.onrender.com/sitemap.xml`);
+});
+
+// App Listen Call - SAARE ROUTES KE BAAD BILKUL AAKHIR MEIN
 app.listen(PORT, () => {
   console.log(`====================================================`);
   console.log(`🚀 Aivora AI Server active at: ${BASE_URL}`);
   console.log(`====================================================`);
 });
+
