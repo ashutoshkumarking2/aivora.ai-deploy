@@ -13,6 +13,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
 app.use(express.json());
 app.use(cookieParser());
@@ -20,7 +21,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'aivora_fallback_secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false, httpOnly: true, maxAge: 3600000 }
+  cookie: { secure: process.env.NODE_ENV === 'production', httpOnly: true, maxAge: 3600000 }
 }));
 
 app.use(express.static(__dirname));
@@ -30,12 +31,13 @@ app.get('/api/auth/github/repo', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   req.session.oauthState = state;
   
-  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent('http://localhost:3000/api/auth/github/callback')}&scope=read:user%20repo&state=${state}`;
+  const redirectUri = `${BASE_URL}/api/auth/github/callback`;
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user%20repo&state=${state}`;
 
   res.redirect(githubAuthUrl);
 });
 
-// Route 2: GitHub Callback (User ki Sabhi Repositories Fetch)
+// Route 2: GitHub Callback
 app.get('/api/auth/github/callback', async (req, res) => {
   const { code, state } = req.query;
 
@@ -63,18 +65,20 @@ app.get('/api/auth/github/callback', async (req, res) => {
       return res.status(400).send('OAuth Token Exchange Failed.');
     }
 
-    // User ki sabhi repositories fetch karein (Up to 100 recent repos)
     const repoResponse = await fetch('https://api.github.com/user/repos?sort=updated&per_page=100', {
       headers: {
-        'Authorization': `token ${tokenData.access_token}`,
+        'Authorization': `Bearer ${tokenData.access_token}`,
         'User-Agent': 'Aivora-AI-App'
       }
     });
 
+    if (!repoResponse.ok) {
+      throw new Error(`GitHub API returned status ${repoResponse.status}`);
+    }
+
     const repos = await repoResponse.json();
 
     if (Array.isArray(repos) && repos.length > 0) {
-      // Simplified JSON payload of all repos
       const repoList = repos.map(r => ({
         name: r.full_name,
         visibility: r.private ? 'Private' : 'Public',
@@ -82,7 +86,6 @@ app.get('/api/auth/github/callback', async (req, res) => {
         url: r.html_url
       }));
 
-      // Base64 encode for clean URL transfer
       const reposEncoded = Buffer.from(JSON.stringify(repoList)).toString('base64');
       res.redirect(`/?repos=${encodeURIComponent(reposEncoded)}`);
     } else {
@@ -97,6 +100,6 @@ app.get('/api/auth/github/callback', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`====================================================`);
-  console.log(`🚀 Aivora AI Server active at: http://localhost:${PORT}`);
+  console.log(`🚀 Aivora AI Server active at: ${BASE_URL}`);
   console.log(`====================================================`);
 });
