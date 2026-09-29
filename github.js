@@ -25,14 +25,12 @@ export function initGitHubModule(currentUser) {
   const urlParams = new URLSearchParams(window.location.search);
   const reposEncoded = urlParams.get('repos');
 
-  // Handle URL Base64 Repository Payload
   if (reposEncoded && repoDisplay) {
     if (reposEncoded === 'empty') {
       repoDisplay.style.display = 'block';
       repoDisplay.innerHTML = `<p style="font-size: 13px; color: #888;">No repositories found on this GitHub account.</p>`;
     } else {
       try {
-        // Safe Base64 UTF-8 Decoding
         const binaryString = atob(decodeURIComponent(reposEncoded));
         const bytes = Uint8Array.from(binaryString, char => char.charCodeAt(0));
         const reposJson = new TextDecoder().decode(bytes);
@@ -40,27 +38,26 @@ export function initGitHubModule(currentUser) {
 
         renderVercelStyleRepoList(reposList);
       } catch (e) {
-        console.error("Failed to parse repository data:", e);
+        console.error("Failed to parse repository data", e);
       }
     }
-    // Clean up query params from address bar
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 
-  // Handle Dynamic Backend Redirect URL
+  // Dual URL Redirect Handler
   if (btnConnectRepo) {
     btnConnectRepo.addEventListener('click', () => {
       if (!currentUser || !currentUser.uid) {
-        alert("Please sign in first to connect your GitHub repositories.");
+        alert("Please sign in first.");
         return;
       }
 
-      // Automatically detects local vs live production Render URL
-      const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      // Automatically selects Localhost or Render Production URL
+      const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? 'http://localhost:10000'
         : 'https://aivora-ai-deploy.onrender.com';
 
-      window.location.href = `${BASE_URL}/api/auth/github/repo?uid=${encodeURIComponent(currentUser.uid)}`;
+      window.location.href = `${API_BASE_URL}/api/auth/github/repo?uid=${encodeURIComponent(currentUser.uid)}`;
     });
   }
 
@@ -92,7 +89,6 @@ export function initGitHubModule(currentUser) {
     html += `</div>`;
     repoDisplay.innerHTML = html;
 
-    // Search filter logic
     const searchInput = document.getElementById('repoSearchInput');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
@@ -107,7 +103,6 @@ export function initGitHubModule(currentUser) {
   }
 }
 
-// Global Import Action Function
 window.importRepo = function(repoName, branch) {
   const repoDisplay = document.getElementById('repoDisplay');
   if (!repoDisplay) return;
