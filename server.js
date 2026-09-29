@@ -14,11 +14,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Dynamic Base URL Detection (Render Production vs Localhost)
+// Dynamic Base URL Detection
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const IS_PROD = process.env.NODE_ENV === 'production';
 
-// Render proxy trust for HTTPS session cookies
 if (IS_PROD) {
   app.set('trust proxy', 1);
 }
@@ -31,9 +30,9 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: IS_PROD, // Dynamic secure flag for HTTPS
+    secure: IS_PROD,
     httpOnly: true,
-    sameSite: IS_PROD ? 'lax' : 'lax',
+    sameSite: 'lax',
     maxAge: 3600000
   }
 }));
@@ -45,7 +44,7 @@ app.get('/api/auth/github/repo', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   req.session.oauthState = state;
 
-  // Dynamic redirect URI according to active BASE_URL
+  // Active BASE_URL ke mutabiq dynamic redirect URI set karna
   const redirectUri = `${BASE_URL}/api/auth/github/callback`;
   
   const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user%20repo&state=${state}`;
@@ -53,11 +52,10 @@ app.get('/api/auth/github/repo', (req, res) => {
   res.redirect(githubAuthUrl);
 });
 
-// Route 2: GitHub Callback (User ki Sabhi Repositories Fetch)
+// Route 2: GitHub Callback
 app.get('/api/auth/github/callback', async (req, res) => {
   const { code, state } = req.query;
 
-  // Validate state against session to protect against CSRF
   if (!state || state !== req.session.oauthState) {
     return res.status(403).send('Security error: State mismatch.');
   }
@@ -79,11 +77,9 @@ app.get('/api/auth/github/callback', async (req, res) => {
 
     const tokenData = await tokenResponse.json();
     if (!tokenData.access_token) {
-      console.error('OAuth Token Exchange Error:', tokenData);
       return res.status(400).send('OAuth Token Exchange Failed.');
     }
 
-    // Modern Bearer Header usage for GitHub REST API
     const repoResponse = await fetch('https://api.github.com/user/repos?sort=updated&per_page=100', {
       headers: {
         'Authorization': `Bearer ${tokenData.access_token}`,
@@ -92,8 +88,7 @@ app.get('/api/auth/github/callback', async (req, res) => {
     });
 
     if (!repoResponse.ok) {
-      const errText = await repoResponse.text();
-      throw new Error(`GitHub API HTTP ${repoResponse.status}: ${errText}`);
+      throw new Error(`GitHub API Error: ${repoResponse.status}`);
     }
 
     const repos = await repoResponse.json();
@@ -106,7 +101,6 @@ app.get('/api/auth/github/callback', async (req, res) => {
         url: r.html_url
       }));
 
-      // Base64 UTF-8 encoding for multi-byte character safety
       const reposEncoded = Buffer.from(JSON.stringify(repoList), 'utf-8').toString('base64');
       res.redirect(`/?repos=${encodeURIComponent(reposEncoded)}`);
     } else {
@@ -114,7 +108,7 @@ app.get('/api/auth/github/callback', async (req, res) => {
     }
 
   } catch (error) {
-    console.error("Backend Callback Error:", error.message);
+    console.error("Backend Error:", error.message);
     res.status(500).send("Internal Server Error during OAuth callback.");
   }
 });
