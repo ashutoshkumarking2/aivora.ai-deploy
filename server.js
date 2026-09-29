@@ -13,15 +13,29 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+
+// Dynamic Base URL Detection (Render Production vs Localhost)
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+const IS_PROD = process.env.NODE_ENV === 'production';
+
+// Render proxy trust for HTTPS session cookies
+if (IS_PROD) {
+  app.set('trust proxy', 1);
+}
 
 app.use(express.json());
 app.use(cookieParser());
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'aivora_fallback_secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: process.env.NODE_ENV === 'production', httpOnly: true, maxAge: 3600000 }
+  cookie: {
+    secure: IS_PROD, // Dynamic secure flag for HTTPS
+    httpOnly: true,
+    sameSite: IS_PROD ? 'lax' : 'lax',
+    maxAge: 3600000
+  }
 }));
 
 app.use(express.static(__dirname));
@@ -30,17 +44,20 @@ app.use(express.static(__dirname));
 app.get('/api/auth/github/repo', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   req.session.oauthState = state;
-  
+
+  // Dynamic redirect URI according to active BASE_URL
   const redirectUri = `${BASE_URL}/api/auth/github/callback`;
+  
   const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user%20repo&state=${state}`;
 
   res.redirect(githubAuthUrl);
 });
 
-// Route 2: GitHub Callback
+// Route 2: GitHub Callback (User ki Sabhi Repositories Fetch)
 app.get('/api/auth/github/callback', async (req, res) => {
   const { code, state } = req.query;
 
+  // Validate state against session to protect against CSRF
   if (!state || state !== req.session.oauthState) {
     return res.status(403).send('Security error: State mismatch.');
   }
@@ -62,9 +79,11 @@ app.get('/api/auth/github/callback', async (req, res) => {
 
     const tokenData = await tokenResponse.json();
     if (!tokenData.access_token) {
+      console.error('OAuth Token Exchange Error:', tokenData);
       return res.status(400).send('OAuth Token Exchange Failed.');
     }
 
+    // Modern Bearer Header usage for GitHub REST API
     const repoResponse = await fetch('https://api.github.com/user/repos?sort=updated&per_page=100', {
       headers: {
         'Authorization': `Bearer ${tokenData.access_token}`,
@@ -73,7 +92,8 @@ app.get('/api/auth/github/callback', async (req, res) => {
     });
 
     if (!repoResponse.ok) {
-      throw new Error(`GitHub API returned status ${repoResponse.status}`);
+      const errText = await repoResponse.text();
+      throw new Error(`GitHub API HTTP ${repoResponse.status}: ${errText}`);
     }
 
     const repos = await repoResponse.json();
@@ -86,14 +106,15 @@ app.get('/api/auth/github/callback', async (req, res) => {
         url: r.html_url
       }));
 
-      const reposEncoded = Buffer.from(JSON.stringify(repoList)).toString('base64');
+      // Base64 UTF-8 encoding for multi-byte character safety
+      const reposEncoded = Buffer.from(JSON.stringify(repoList), 'utf-8').toString('base64');
       res.redirect(`/?repos=${encodeURIComponent(reposEncoded)}`);
     } else {
       res.redirect('/?repos=empty');
     }
 
   } catch (error) {
-    console.error("Backend Error:", error.message);
+    console.error("Backend Callback Error:", error.message);
     res.status(500).send("Internal Server Error during OAuth callback.");
   }
 });
