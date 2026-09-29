@@ -25,25 +25,42 @@ export function initGitHubModule(currentUser) {
   const urlParams = new URLSearchParams(window.location.search);
   const reposEncoded = urlParams.get('repos');
 
+  // Handle URL Base64 Repository Payload
   if (reposEncoded && repoDisplay) {
     if (reposEncoded === 'empty') {
       repoDisplay.style.display = 'block';
       repoDisplay.innerHTML = `<p style="font-size: 13px; color: #888;">No repositories found on this GitHub account.</p>`;
     } else {
       try {
-        const reposJson = atob(decodeURIComponent(reposEncoded));
+        // Safe Base64 UTF-8 Decoding
+        const binaryString = atob(decodeURIComponent(reposEncoded));
+        const bytes = Uint8Array.from(binaryString, char => char.charCodeAt(0));
+        const reposJson = new TextDecoder().decode(bytes);
         const reposList = JSON.parse(reposJson);
+
         renderVercelStyleRepoList(reposList);
       } catch (e) {
-        console.error("Failed to parse repository data", e);
+        console.error("Failed to parse repository data:", e);
       }
     }
+    // Clean up query params from address bar
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 
+  // Handle Dynamic Backend Redirect URL
   if (btnConnectRepo) {
     btnConnectRepo.addEventListener('click', () => {
-      window.location.href = `http://localhost:10000/api/auth/github/repo?uid=${encodeURIComponent(currentUser.uid)}`;
+      if (!currentUser || !currentUser.uid) {
+        alert("Please sign in first to connect your GitHub repositories.");
+        return;
+      }
+
+      // Automatically detects local vs live production Render URL
+      const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:10000'
+        : 'https://aivora-ai-deploy.onrender.com';
+
+      window.location.href = `${BASE_URL}/api/auth/github/repo?uid=${encodeURIComponent(currentUser.uid)}`;
     });
   }
 
@@ -55,7 +72,7 @@ export function initGitHubModule(currentUser) {
       <div class="vercel-repo-list" id="vercelRepoList">
     `;
 
-    repos.forEach((repo, index) => {
+    repos.forEach((repo) => {
       html += `
         <div class="vercel-repo-item" data-name="${escapeHtml(repo.name).toLowerCase()}">
           <div class="repo-main-info">
@@ -79,7 +96,7 @@ export function initGitHubModule(currentUser) {
     const searchInput = document.getElementById('repoSearchInput');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
+        const query = e.target.value.toLowerCase().trim();
         const items = document.querySelectorAll('.vercel-repo-item');
         items.forEach(item => {
           const name = item.getAttribute('data-name');
@@ -93,6 +110,8 @@ export function initGitHubModule(currentUser) {
 // Global Import Action Function
 window.importRepo = function(repoName, branch) {
   const repoDisplay = document.getElementById('repoDisplay');
+  if (!repoDisplay) return;
+
   repoDisplay.innerHTML = `
     <div class="configured-repo-card">
       <div class="configured-header">
@@ -111,5 +130,10 @@ window.importRepo = function(repoName, branch) {
 };
 
 function escapeHtml(str) {
-  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
