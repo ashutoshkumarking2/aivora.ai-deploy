@@ -43,7 +43,7 @@ export function initGitHubModule(currentUser) {
 
   if (btnConnectRepo) {
     btnConnectRepo.addEventListener('click', () => {
-      window.location.href = `http://localhost:3000/api/auth/github/repo?uid=${encodeURIComponent(currentUser.uid)}`;
+      window.location.href = `http://localhost:10000/api/auth/github/repo?uid=${encodeURIComponent(currentUser.uid)}`;
     });
   }
 
