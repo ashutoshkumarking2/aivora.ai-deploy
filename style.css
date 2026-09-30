@@ -893,3 +893,32 @@ body {
   border-radius: 50%;
   display: inline-block;
 }
+
+
+
+
+
+
+/* Skeleton Loader for Repo Items */
+.skeleton {
+  background: linear-gradient(90deg, #e0e0e0 25%, #f5f5f5 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-text {
+  height: 14px;
+  width: 60%;
+  margin-bottom: 6px;
+}
+
+.skeleton-subtext {
+  height: 10px;
+  width: 40%;
+}
