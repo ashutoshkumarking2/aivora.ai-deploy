@@ -103,6 +103,7 @@ export function initGitHubModule(currentUser) {
   }
 }
 
+// Interactive Configured Import View
 window.importRepo = function(repoName, branch) {
   const repoDisplay = document.getElementById('repoDisplay');
   if (!repoDisplay) return;
@@ -110,7 +111,7 @@ window.importRepo = function(repoName, branch) {
   repoDisplay.innerHTML = `
     <div class="configured-repo-card">
       <div class="configured-header">
-        <span class="badge-connected">Ready to Deploy</span>
+        <span class="badge-connected">Configure Deployment</span>
         <button class="btn-secondary-sm" onclick="location.reload()">Change Repo</button>
       </div>
       
@@ -118,8 +119,19 @@ window.importRepo = function(repoName, branch) {
         <h3 style="font-size: 16px; font-weight: 600; color: #1B1B1B;">${escapeHtml(repoName)}</h3>
       </div>
 
-      <!-- Branch Selection -->
+      <!-- Framework Preset Selector -->
       <div class="form-group" style="margin-top: 8px;">
+        <label class="form-label">Framework Preset</label>
+        <select id="frameworkSelect" class="form-input" style="height: 38px; font-size: 13px;">
+          <option value="vite">Vite / React SPA</option>
+          <option value="nextjs">Next.js (App Router)</option>
+          <option value="nodejs">Node.js API Service</option>
+          <option value="static">Static HTML/JS</option>
+        </select>
+      </div>
+
+      <!-- Branch Selection -->
+      <div class="form-group">
         <label class="form-label">Select Branch</label>
         <select id="branchSelect" class="form-input" style="height: 38px; font-size: 13px;">
           <option value="${escapeHtml(branch)}" selected>${escapeHtml(branch)} (default)</option>
@@ -129,20 +141,101 @@ window.importRepo = function(repoName, branch) {
         </select>
       </div>
 
+      <!-- Build Command & Output Directory Settings -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="form-group">
+          <label class="form-label">Build Command</label>
+          <input type="text" id="buildCommand" class="form-input" style="height: 36px; font-size: 12px;" value="npm run build" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Output Directory</label>
+          <input type="text" id="outputDir" class="form-input" style="height: 36px; font-size: 12px;" value="dist" />
+        </div>
+      </div>
+
       <!-- Environment Variables Input -->
       <div class="form-group">
         <label class="form-label">Environment Variables (.env)</label>
-        <textarea id="envInput" class="form-input" style="height: 60px; padding: 8px; font-family: monospace; font-size: 12px;" placeholder="KEY=VALUE&#10;API_SECRET=xyz"></textarea>
+        <textarea id="envInput" class="form-input" style="height: 55px; padding: 8px; font-family: monospace; font-size: 12px;" placeholder="KEY=VALUE&#10;API_SECRET=xyz"></textarea>
       </div>
 
-      <button class="btn-primary" style="height: 40px; font-size: 13px;" onclick="startBuildProcess('${escapeHtml(repoName)}')">
-        Build & Deploy Workspace
+      <button id="btnDeployTrigger" class="btn-primary" style="height: 40px; font-size: 13px;" onclick="startBuildProcess('${escapeHtml(repoName)}')">
+        Deploy Workspace
       </button>
 
       <!-- Live Terminal Output Container -->
       <div id="terminalContainer" style="display: none;"></div>
     </div>
   `;
+};
+
+// Real-Time Simulated Build Terminal & Deployment Process
+window.startBuildProcess = function(repoName) {
+  const btnDeploy = document.getElementById('btnDeployTrigger');
+  const term = document.getElementById('terminalContainer');
+  if (!term) return;
+
+  if (btnDeploy) {
+    btnDeploy.disabled = true;
+    btnDeploy.style.opacity = '0.6';
+    btnDeploy.textContent = 'Building...';
+  }
+
+  term.style.display = 'block';
+  term.innerHTML = `
+    <div class="terminal-card">
+      <div class="terminal-header">
+        <span class="terminal-dot dot-red"></span>
+        <span class="terminal-dot dot-yellow"></span>
+        <span class="terminal-dot dot-green"></span>
+        <span style="margin-left: auto; font-size: 10px; color: #888;">aivora-ci-engine v2.4</span>
+      </div>
+      <div class="build-progress-bar-wrap" style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-bottom: 10px; overflow: hidden;">
+        <div id="progressBar" style="width: 10%; height: 100%; background: #00FF66; transition: width 0.4s ease;"></div>
+      </div>
+      <div class="terminal-body" id="terminalLogs">
+        <p>[00:01] <span style="color:#22c55e;">✔</span> Connecting to GitHub repo: <strong>${escapeHtml(repoName)}</strong>...</p>
+      </div>
+    </div>
+  `;
+
+  const logs = document.getElementById('terminalLogs');
+  const progressBar = document.getElementById('progressBar');
+
+  setTimeout(() => {
+    if (progressBar) progressBar.style.width = '35%';
+    logs.innerHTML += `<p>[00:02] <span style="color:#22c55e;">✔</span> Analyzing dependencies & Framework Preset...</p>`;
+  }, 1000);
+
+  setTimeout(() => {
+    if (progressBar) progressBar.style.width = '65%';
+    logs.innerHTML += `<p>[00:04] <span style="color:#22c55e;">✔</span> Injecting Aivora AI Optimization Engine...</p>`;
+    logs.innerHTML += `<p>[00:05] <span style="color:#3b82f6;">ℹ</span> Executing: <code>npm run build</code>...</p>`;
+  }, 2200);
+
+  setTimeout(() => {
+    if (progressBar) progressBar.style.width = '88%';
+    logs.innerHTML += `<p>[00:06] <span style="color:#22c55e;">✔</span> Output generated at <code>/dist</code> successfully.</p>`;
+  }, 3500);
+
+  setTimeout(() => {
+    if (progressBar) progressBar.style.width = '100%';
+    const liveDomain = `https://${repoName.toLowerCase().replace(/[^a-z0-9]/g, '-')}.aivora.app`;
+    
+    logs.innerHTML += `
+      <p>[00:07] <span style="color:#00FF66; font-weight: bold;">🚀 Deployed successfully to production!</span></p>
+      <div style="margin-top: 12px; padding: 10px; background: rgba(0,255,102,0.08); border: 1px solid rgba(0,255,102,0.3); border-radius: 8px;">
+        <span style="font-size: 11px; color: #AAA; display: block;">Live Preview Link:</span>
+        <a href="${liveDomain}" target="_blank" style="color: #00FF66; font-weight: 600; text-decoration: underline; font-size: 13px;">${liveDomain}</a>
+      </div>
+    `;
+
+    if (btnDeploy) {
+      btnDeploy.disabled = false;
+      btnDeploy.style.opacity = '1';
+      btnDeploy.textContent = 'Re-Deploy Workspace';
+    }
+  }, 4800);
 };
 
 function escapeHtml(str) {
