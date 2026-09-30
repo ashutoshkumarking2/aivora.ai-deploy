@@ -14,7 +14,6 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Dynamic Base URL Detection
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const IS_PROD = process.env.NODE_ENV === 'production';
 
@@ -39,20 +38,18 @@ app.use(session({
 
 app.use(express.static(__dirname));
 
-// Route 1: GitHub Repositories OAuth Initiate
+// OAuth Route
 app.get('/api/auth/github/repo', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   req.session.oauthState = state;
 
-  // Active BASE_URL ke mutabiq dynamic redirect URI set karna
   const redirectUri = `${BASE_URL}/api/auth/github/callback`;
-  
   const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user%20repo&state=${state}`;
 
   res.redirect(githubAuthUrl);
 });
 
-// Route 2: GitHub Callback
+// OAuth Callback Route
 app.get('/api/auth/github/callback', async (req, res) => {
   const { code, state } = req.query;
 
@@ -113,7 +110,6 @@ app.get('/api/auth/github/callback', async (req, res) => {
   }
 });
 
-
 // Dynamic sitemap.xml Route
 app.get('/sitemap.xml', (req, res) => {
   res.header('Content-Type', 'application/xml');
@@ -137,10 +133,9 @@ Allow: /
 Sitemap: https://aivora-ai-deploy.onrender.com/sitemap.xml`);
 });
 
-// App Listen Call - SAARE ROUTES KE BAAD BILKUL AAKHIR MEIN
+// Server Start
 app.listen(PORT, () => {
   console.log(`====================================================`);
   console.log(`🚀 Aivora AI Server active at: ${BASE_URL}`);
   console.log(`====================================================`);
 });
-
