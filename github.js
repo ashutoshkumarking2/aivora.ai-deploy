@@ -44,6 +44,7 @@ export function initGitHubModule(currentUser) {
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 
+  // Dual URL Redirect Handler (Localhost or Production Render)
   if (btnConnectRepo) {
     btnConnectRepo.addEventListener('click', () => {
       if (!currentUser || !currentUser.uid) {
@@ -59,20 +60,15 @@ export function initGitHubModule(currentUser) {
     });
   }
 
-  // Vercel-Style Rectangular Full Width Vertical Renderer
   function renderVercelStyleRepoList(repos) {
     repoDisplay.style.display = 'block';
 
     let html = `
-      <input type="text" id="repoSearchInput" class="repo-search-bar" placeholder="Search repository by name..." />
+      <input type="text" id="repoSearchInput" class="repo-search-bar" placeholder="Search repository..." />
       <div class="vercel-repo-list" id="vercelRepoList">
     `;
 
     repos.forEach((repo) => {
-      // Generate preview homepage or live deployment URL fallback
-      const repoGithubUrl = repo.url || `https://github.com/${repo.name}`;
-      const repoNameOnly = repo.name.split('/')[1] || repo.name;
-
       html += `
         <div class="vercel-repo-item" data-name="${escapeHtml(repo.name).toLowerCase()}">
           <div class="repo-main-info">
@@ -80,28 +76,11 @@ export function initGitHubModule(currentUser) {
               <path fill-rule="evenodd" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 010-1.5h1.75v-2h-8a1 1 0 00-1 1v1h1.75a.75.75 0 010 1.5h-2.5A.75.75 0 012 14.25V2.5zm2.5-1a1 1 0 00-1 1v8.008a2.5 2.5 0 01.8-.183h8.2V1.5H4.5z"/>
             </svg>
             <div class="repo-title-box">
-              <div class="repo-header-line">
-                <a href="${escapeHtml(repoGithubUrl)}" target="_blank" class="repo-title-name">${escapeHtml(repo.name)}</a>
-                <span class="badge-visibility">${escapeHtml(repo.visibility)}</span>
-              </div>
-              
-              <!-- All Related Links Row -->
-              <div class="repo-links-row">
-                <a href="${escapeHtml(repoGithubUrl)}" target="_blank" class="repo-link-item">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                  GitHub Source
-                </a>
-                <span>•</span>
-                <span class="repo-branch-info">Branch: <strong>${escapeHtml(repo.branch)}</strong></span>
-              </div>
+              <a href="${escapeHtml(repo.url)}" target="_blank" class="repo-title-name">${escapeHtml(repo.name)}</a>
+              <span class="repo-time-stamp">${escapeHtml(repo.visibility)} • Branch: ${escapeHtml(repo.branch)}</span>
             </div>
           </div>
-
-          <div class="repo-actions-box">
-            <button class="btn-import" onclick="importRepo('${escapeHtml(repo.name)}', '${escapeHtml(repo.branch)}', '${escapeHtml(repoGithubUrl)}')">
-              Import & Deploy
-            </button>
-          </div>
+          <button class="btn-import" onclick="importRepo('${escapeHtml(repo.name)}', '${escapeHtml(repo.branch)}')">Import</button>
         </div>
       `;
     });
@@ -109,7 +88,7 @@ export function initGitHubModule(currentUser) {
     html += `</div>`;
     repoDisplay.innerHTML = html;
 
-    // Search bar filter logic
+    // Real-time Search Algorithm
     const searchInput = document.getElementById('repoSearchInput');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
@@ -124,25 +103,22 @@ export function initGitHubModule(currentUser) {
   }
 }
 
-window.importRepo = function(repoName, branch, repoUrl) {
+window.importRepo = function(repoName, branch) {
   const repoDisplay = document.getElementById('repoDisplay');
   if (!repoDisplay) return;
 
   repoDisplay.innerHTML = `
-    <div class="configured-repo-card" style="padding: 20px; background: #FFFFFF; border: 1px solid #595F39; border-radius: 8px;">
-      <div class="configured-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <span class="badge-connected" style="background: #DCFCE7; color: #166534; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;">✓ Repository Connected</span>
-        <button class="btn-secondary-sm" onclick="location.reload()">Back to Repositories</button>
+    <div class="configured-repo-card">
+      <div class="configured-header">
+        <span class="badge-connected">✓ Connected to Aivora</span>
+        <button class="btn-secondary-sm" onclick="location.reload()">Change</button>
       </div>
       <div>
-        <h3 style="font-size: 18px; font-weight: 700; color: #0F172A;">${escapeHtml(repoName)}</h3>
-        <p style="font-size: 13px; color: #64748B; margin-top: 4px;">Default Branch: <strong>${escapeHtml(branch)}</strong></p>
-        <p style="font-size: 13px; color: #2563EB; margin-top: 2px;">
-          <a href="${escapeHtml(repoUrl)}" target="_blank" style="color: #2563EB; text-decoration: underline;">View Source on GitHub</a>
-        </p>
+        <h3 style="font-size: 15px; font-weight: 600; color: #1B1B1B;">${escapeHtml(repoName)}</h3>
+        <p style="font-size: 12px; color: #666; margin-top: 2px;">Default Branch: <strong>${escapeHtml(branch)}</strong></p>
       </div>
-      <button class="btn-primary" style="margin-top: 16px; width: 100%; height: 44px; font-size: 14px;" onclick="alert('Deploying ${escapeHtml(repoName)} to Aivora AI workspace...')">
-        Deploy Workspace Live
+      <button class="btn-primary" style="margin-top: 6px; height: 38px; font-size: 13px;" onclick="alert('Deploying ${escapeHtml(repoName)} workspace...')">
+        Deploy Workspace
       </button>
     </div>
   `;
