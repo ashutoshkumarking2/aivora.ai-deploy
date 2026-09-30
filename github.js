@@ -44,7 +44,7 @@ export function initGitHubModule(currentUser) {
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 
-  // Dual URL Redirect Handler
+  // Dual URL Redirect Handler (Localhost vs Render)
   if (btnConnectRepo) {
     btnConnectRepo.addEventListener('click', () => {
       if (!currentUser || !currentUser.uid) {
@@ -52,7 +52,6 @@ export function initGitHubModule(currentUser) {
         return;
       }
 
-      // Automatically selects Localhost or Render Production URL
       const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? 'http://localhost:10000'
         : 'https://aivora-ai-deploy.onrender.com';
