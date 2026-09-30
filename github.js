@@ -44,7 +44,6 @@ export function initGitHubModule(currentUser) {
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 
-  // Dual URL Redirect Handler (Localhost vs Render)
   if (btnConnectRepo) {
     btnConnectRepo.addEventListener('click', () => {
       if (!currentUser || !currentUser.uid) {
@@ -60,6 +59,7 @@ export function initGitHubModule(currentUser) {
     });
   }
 
+  // Vercel-Style Rectangular Vertical List Generator
   function renderVercelStyleRepoList(repos) {
     repoDisplay.style.display = 'block';
 
@@ -77,7 +77,10 @@ export function initGitHubModule(currentUser) {
             </svg>
             <div class="repo-title-box">
               <a href="${escapeHtml(repo.url)}" target="_blank" class="repo-title-name">${escapeHtml(repo.name)}</a>
-              <span class="repo-time-stamp">${escapeHtml(repo.visibility)} • Branch: ${escapeHtml(repo.branch)}</span>
+              <div class="repo-meta-row">
+                <span class="badge-visibility">${escapeHtml(repo.visibility)}</span>
+                <span class="repo-branch-text">branch: <strong>${escapeHtml(repo.branch)}</strong></span>
+              </div>
             </div>
           </div>
           <button class="btn-import" onclick="importRepo('${escapeHtml(repo.name)}', '${escapeHtml(repo.branch)}')">Import</button>
@@ -88,6 +91,7 @@ export function initGitHubModule(currentUser) {
     html += `</div>`;
     repoDisplay.innerHTML = html;
 
+    // Real-time Vertical Filter
     const searchInput = document.getElementById('repoSearchInput');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
@@ -116,7 +120,7 @@ window.importRepo = function(repoName, branch) {
         <h3 style="font-size: 16px; font-weight: 600; color: #1B1B1B;">${escapeHtml(repoName)}</h3>
         <p style="font-size: 12px; color: #666; margin-top: 4px;">Default Branch: <strong>${escapeHtml(branch)}</strong></p>
       </div>
-      <button class="btn-primary" style="margin-top: 8px;" onclick="alert('Deploying ${escapeHtml(repoName)} to Aivora AI workspace...')">
+      <button class="btn-primary" style="margin-top: 8px; width: 100%;" onclick="alert('Deploying ${escapeHtml(repoName)} to Aivora AI workspace...')">
         Deploy Workspace
       </button>
     </div>
