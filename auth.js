@@ -27,6 +27,7 @@ const formSubtitle = document.getElementById('formSubtitle');
 const statusBanner = document.getElementById('statusBanner');
 const btnGoogle = document.getElementById('btnGoogle');
 const btnSignOut = document.getElementById('btnSignOut');
+const btnGetStarted = document.getElementById('btnGetStarted');
 
 // User Profile Elements
 const userName = document.getElementById('userName');
@@ -35,7 +36,20 @@ const userAvatar = document.getElementById('userAvatar');
 
 let isSignUp = false;
 
-// UI Helper: Display Messages
+// Netlify-Style Get Started Action Button
+if (btnGetStarted) {
+  btnGetStarted.addEventListener('click', () => {
+    if (emailInput) emailInput.focus();
+    isSignUp = true;
+    formTitle.textContent = "Create Account";
+    formSubtitle.textContent = "Get started with your Aivora workspace.";
+    submitAuthBtn.textContent = "Create Account";
+    toggleModeText.textContent = "Already have an account?";
+    toggleModeBtn.textContent = "Sign In";
+  });
+}
+
+// Status Display Helpers
 function showStatus(message, isError = false) {
   if (!statusBanner) return;
   statusBanner.textContent = message;
@@ -57,7 +71,7 @@ if (togglePasswordBtn && passwordInput) {
   });
 }
 
-// Toggle between Sign In and Sign Up Modes
+// Mode Switcher (Sign In vs Sign Up)
 if (toggleModeBtn) {
   toggleModeBtn.addEventListener('click', (e) => {
     e.preventDefault();
@@ -80,7 +94,7 @@ if (toggleModeBtn) {
   });
 }
 
-// Form Submission: Email/Password
+// Email Auth Submit
 if (emailForm) {
   emailForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -114,7 +128,7 @@ if (emailForm) {
   });
 }
 
-// Google Authentication
+// Google Login
 if (btnGoogle) {
   btnGoogle.addEventListener('click', async () => {
     clearStatus();
@@ -127,7 +141,7 @@ if (btnGoogle) {
   });
 }
 
-// Password Reset Email
+// Password Reset Link
 if (forgotPasswordBtn) {
   forgotPasswordBtn.addEventListener('click', async (e) => {
     e.preventDefault();
@@ -160,7 +174,7 @@ if (btnSignOut) {
   });
 }
 
-// Authentication State Listener & Dashboard Protection
+// Authentication State Listener & Dashboard Routing
 onAuthStateChanged(auth, (user) => {
   if (user) {
     if (authCard) authCard.style.display = 'none';
@@ -181,7 +195,6 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// Helper: Human-readable error messages
 function formatFirebaseError(code) {
   switch (code) {
     case 'auth/user-not-found':
