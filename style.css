@@ -36,11 +36,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 24px;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Container Layout */
+/* Container Layout Optimized for Laptops & Desktops */
 .app-container {
   width: 100%;
   max-width: 1120px;
@@ -237,7 +237,7 @@ body {
   align-items: center;
 }
 
-.form-input, .repo-select {
+.form-input {
   width: 100%;
   height: 44px;
   padding: 0 14px;
@@ -250,7 +250,7 @@ body {
   transition: var(--transition);
 }
 
-.form-input:focus, .repo-select:focus {
+.form-input:focus {
   outline: none;
   border-color: var(--btn-moss);
   box-shadow: 0 0 0 3px rgba(89, 95, 57, 0.15);
@@ -353,7 +353,7 @@ body {
   border: 1px solid #BBF7D0;
 }
 
-/* Dashboard View & Repo List */
+/* Dashboard View & Laptop Interface */
 .dashboard-card {
   display: none;
   flex-direction: column;
@@ -397,119 +397,7 @@ body {
   padding: 18px;
 }
 
-.dashboard-section h4 {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 10px;
-}
-
-/* Repository List Container */
-.repo-list-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 220px;
-  overflow-y: auto;
-  margin-top: 12px;
-  padding-right: 4px;
-}
-
-.repo-card {
-  padding: 12px;
-  background: var(--cotton-white);
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.repo-info-main {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.repo-name {
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--btn-moss);
-  word-break: break-all;
-}
-
-.repo-meta {
-  font-size: 11px;
-  color: #777;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.badge {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  background: var(--pebble-grey);
-  color: var(--dark-slate);
-}
-
-/* --- MOBILE & TABLET RESPONSIVE MEDIA QUERIES --- */
-@media (max-width: 860px) {
-  body {
-    padding: 12px;
-  }
-
-  .app-container {
-    grid-template-columns: 1fr; /* Single Column Layout on Mobile */
-    max-width: 500px;
-    min-height: auto;
-  }
-
-  .hero-section {
-    padding: 28px 24px;
-  }
-
-  .hero-headline {
-    font-size: 28px;
-  }
-
-  .hero-body {
-    margin: 20px 0;
-  }
-
-  .auth-section {
-    padding: 28px 24px;
-  }
-
-  .social-btns {
-    grid-template-columns: 1fr; /* Stack social buttons vertically on mobile */
-  }
-
-  .form-actions {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-}
-
-@media (max-width: 420px) {
-  .hero-section, .auth-section {
-    padding: 20px 16px;
-  }
-
-  .auth-title {
-    font-size: 24px;
-  }
-}
-
-
-
-
-/* Vercel Style Import Section */
+/* Laptop Specific Section Header */
 .section-header-flex {
   display: flex;
   align-items: center;
@@ -546,9 +434,10 @@ body {
   border-color: #ccc;
 }
 
+/* Search Bar & Laptop Repos List */
 .repo-search-bar {
   width: 100%;
-  height: 38px;
+  height: 40px;
   padding: 0 12px;
   border: 1px solid var(--pebble-grey);
   border-radius: var(--radius-sm);
@@ -596,6 +485,7 @@ body {
   width: 18px;
   height: 18px;
   color: #555;
+  flex-shrink: 0;
 }
 
 .repo-title-box {
@@ -635,16 +525,6 @@ body {
   background-color: var(--btn-moss);
 }
 
-.btn-imported {
-  padding: 6px 14px;
-  background-color: #E0E7FF;
-  color: #3730A3;
-  border: 1px solid #C7D2FE;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 600;
-}
-
 .btn-outline-danger {
   width: 100%;
   height: 40px;
@@ -661,7 +541,7 @@ body {
   background: #FDF2F2;
 }
 
-/* Imported Config Card */
+/* Configured Repo Workspace Card */
 .configured-repo-card {
   padding: 16px;
   background: #ffffff;
@@ -687,6 +567,41 @@ body {
   font-weight: 700;
 }
 
+/* --- MOBILE & TABLET RESPONSIVE MEDIA QUERIES --- */
+@media (max-width: 860px) {
+  body {
+    padding: 12px;
+  }
 
+  .app-container {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    min-height: auto;
+  }
 
+  .hero-section {
+    padding: 28px 24px;
+  }
 
+  .hero-headline {
+    font-size: 28px;
+  }
+
+  .hero-body {
+    margin: 20px 0;
+  }
+
+  .auth-section {
+    padding: 28px 24px;
+  }
+
+  .social-btns {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
