@@ -110,16 +110,37 @@ window.importRepo = function(repoName, branch) {
   repoDisplay.innerHTML = `
     <div class="configured-repo-card">
       <div class="configured-header">
-        <span class="badge-connected">✓ Connected to Aivora</span>
-        <button class="btn-secondary-sm" onclick="location.reload()">Change</button>
+        <span class="badge-connected">Ready to Deploy</span>
+        <button class="btn-secondary-sm" onclick="location.reload()">Change Repo</button>
       </div>
-      <div>
-        <h3 style="font-size: 15px; font-weight: 600; color: #1B1B1B;">${escapeHtml(repoName)}</h3>
-        <p style="font-size: 12px; color: #666; margin-top: 2px;">Default Branch: <strong>${escapeHtml(branch)}</strong></p>
+      
+      <div style="margin-top: 4px;">
+        <h3 style="font-size: 16px; font-weight: 600; color: #1B1B1B;">${escapeHtml(repoName)}</h3>
       </div>
-      <button class="btn-primary" style="margin-top: 6px; height: 38px; font-size: 13px;" onclick="alert('Deploying ${escapeHtml(repoName)} workspace...')">
-        Deploy Workspace
+
+      <!-- Branch Selection -->
+      <div class="form-group" style="margin-top: 8px;">
+        <label class="form-label">Select Branch</label>
+        <select id="branchSelect" class="form-input" style="height: 38px; font-size: 13px;">
+          <option value="${escapeHtml(branch)}" selected>${escapeHtml(branch)} (default)</option>
+          <option value="main">main</option>
+          <option value="dev">dev</option>
+          <option value="staging">staging</option>
+        </select>
+      </div>
+
+      <!-- Environment Variables Input -->
+      <div class="form-group">
+        <label class="form-label">Environment Variables (.env)</label>
+        <textarea id="envInput" class="form-input" style="height: 60px; padding: 8px; font-family: monospace; font-size: 12px;" placeholder="KEY=VALUE&#10;API_SECRET=xyz"></textarea>
+      </div>
+
+      <button class="btn-primary" style="height: 40px; font-size: 13px;" onclick="startBuildProcess('${escapeHtml(repoName)}')">
+        Build & Deploy Workspace
       </button>
+
+      <!-- Live Terminal Output Container -->
+      <div id="terminalContainer" style="display: none;"></div>
     </div>
   `;
 };
